@@ -2,9 +2,24 @@
 ## abort on an unexpected EoF flag in bulk transfers, which is the exact
 ## failure mode of "opens fine, dies during frame transfer" on old cameras.
 ## Taking the newest 2.x is better still.
+##
+## esp_hosted was added below -- net.cpp calls esp_hosted_init(),
+## esp_hosted_connect_to_slave(), and esp_hosted_get_coprocessor_fwversion(),
+## none of which exist without this component, and it was missing from the
+## dependency list entirely (net.cpp would not have compiled or linked
+## without it, regardless of the header-file fix). No version floor is
+## pinned here on purpose: whatever version this resolves to MUST match the
+## esp_hosted revision the ESP32-C6 "slave" firmware (network_adapter.bin)
+## was built from -- see PROBE-NOTES.md and SBS.md for how to build that.
+## If you build the slave firmware from a specific tagged release of
+## espressif/esp-hosted-mcu, pin the same version here, e.g. "^2.9.0", so
+## the two sides can't silently drift apart.
 dependencies:
   idf:
     version: ">=5.3"
 
   espressif/usb_host_uvc:
     version: "^2.3.0"
+
+  espressif/esp_hosted:
+    version: "*"

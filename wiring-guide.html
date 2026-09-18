@@ -1,0 +1,502 @@
+<title>Servo Rig Wiring</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --bg:#0a2138;
+    --sheet:#0d2c4a;
+    --sheet-line:#1e496f;
+    --sheet-line-soft:#163a5c;
+    --ink:#eaf2fb;
+    --muted:#9db8d6;
+    --accent-warn:#e2554a;
+    --accent-power:#e8a33d;
+    --accent-signal:#7fd1e6;
+    --accent-ground:#6fcf8f;
+    --card:#0f2f4e;
+    --card-border:#22496d;
+    color-scheme: dark;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,sans-serif;
+    padding-inline:20px;
+    padding-block:36px;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+
+  .kicker{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    color:var(--accent-signal);
+    text-transform:uppercase;
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:"IBM Plex Mono",monospace;
+    font-weight:600;
+    font-size:clamp(28px,5vw,40px);
+    line-height:1.1;
+    margin:0 0 12px;
+    text-wrap:balance;
+  }
+  .dek{
+    font-size:16px;
+    color:var(--muted);
+    max-width:62ch;
+    line-height:1.5;
+    margin:0 0 18px;
+  }
+  .revision{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    color:var(--accent-warn);
+    background:rgba(226,85,74,.1);
+    border:1px solid rgba(226,85,74,.35);
+    border-radius:20px;
+    padding:5px 12px;
+    margin-bottom:28px;
+  }
+  .revision::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--accent-warn);flex:none;}
+
+  .sheet{
+    position:relative;
+    background:var(--sheet);
+    border:1px solid var(--sheet-line);
+    border-radius:4px;
+    padding:22px 18px 10px;
+    margin-bottom:8px;
+    background-image:
+      linear-gradient(var(--sheet-line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--sheet-line-soft) 1px, transparent 1px);
+    background-size:28px 28px;
+    background-position:-1px -1px;
+  }
+  .sheet::before,.sheet::after{
+    content:"";
+    position:absolute;
+    width:14px;height:14px;
+  }
+  .sheet::before{
+    top:8px;left:8px;
+    border-top:2px solid var(--accent-signal);
+    border-left:2px solid var(--accent-signal);
+    opacity:.7;
+  }
+  .sheet::after{
+    bottom:8px;right:8px;
+    border-bottom:2px solid var(--accent-signal);
+    border-right:2px solid var(--accent-signal);
+    opacity:.7;
+  }
+
+  svg.diagram{width:100%;height:auto;display:block;}
+  svg.diagram text{font-family:"IBM Plex Mono",monospace;}
+
+  figcaption{
+    font-size:13px;
+    color:var(--muted);
+    line-height:1.5;
+    padding:14px 4px 22px;
+    max-width:74ch;
+  }
+
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:18px;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    color:var(--muted);
+    margin:0 0 34px;
+  }
+  .legend span{display:inline-flex;align-items:center;gap:7px;}
+  .swatch{width:16px;height:3px;border-radius:2px;display:inline-block;}
+  .swatch.dash{
+    background:repeating-linear-gradient(90deg,var(--accent-ground) 0 5px, transparent 5px 9px);
+  }
+
+  h2{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:19px;
+    font-weight:600;
+    margin:0 0 14px;
+    padding-top:8px;
+  }
+
+  .tablewrap{overflow-x:auto;margin-bottom:8px;}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:14px;
+    min-width:680px;
+  }
+  th,td{
+    text-align:left;
+    padding:10px 12px;
+    border-bottom:1px solid var(--card-border);
+    vertical-align:top;
+  }
+  th{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:500;
+  }
+  td.mono, th.mono{font-family:"IBM Plex Mono",monospace;font-size:13px;}
+  td.note{color:var(--muted);}
+  tr:last-child td{border-bottom:none;}
+  tr.group-motor td{background:rgba(232,163,61,.06);}
+
+  .footnote{
+    font-size:13px;
+    color:var(--muted);
+    line-height:1.6;
+    margin:14px 0 40px;
+    padding:12px 14px;
+    border-left:3px solid var(--accent-warn);
+    background:var(--card);
+    border-radius:0 4px 4px 0;
+  }
+  .footnote b{color:var(--ink);}
+
+  .callouts{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:14px;
+    margin-bottom:20px;
+  }
+  @media (max-width:640px){
+    .callouts{grid-template-columns:1fr;}
+  }
+  .callout{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .callout h3{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:13px;
+    letter-spacing:.03em;
+    margin:0 0 8px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .callout h3::before{
+    content:"";
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--accent-warn);
+    flex:none;
+  }
+  .callout p{
+    font-size:13.5px;
+    color:var(--muted);
+    line-height:1.55;
+    margin:0;
+  }
+  .callout code{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12.5px;
+    color:var(--ink);
+    background:rgba(255,255,255,.06);
+    padding:1px 5px;
+    border-radius:3px;
+  }
+
+  footer{
+    font-size:12.5px;
+    color:var(--muted);
+    border-top:1px solid var(--card-border);
+    padding-top:18px;
+    margin-top:12px;
+    line-height:1.6;
+  }
+</style>
+
+<div class="wrap">
+
+  <p class="kicker">Physical wiring reference</p>
+  <h1>Servo Rig Wiring</h1>
+  <p class="dek">
+    What plugs into what, and how, across every physical connection: the
+    USB camera, the ESP32&#8209;P4 hub board, the Arduino Uno, and the
+    12V DC worm-gear motor (driven through an L298N module) that replaced
+    the original hobby servo. Color coding follows signal, power, and
+    ground throughout.
+  </p>
+  <p class="revision">Rev. 2 — actuator changed from a hobby servo to a 12V DC gear motor + L298N driver</p>
+
+  <div class="sheet">
+    <svg class="diagram" viewBox="0 0 1470 460" role="img"
+      aria-label="Wiring diagram showing the USB camera connected to the ESP32-P4 hub over USB; the P4's on-board ESP32-C6 co-processor linked by fixed on-board SDIO; a serial link between the P4 and the Arduino Uno, direct in one direction and passing through a resistor divider in the other, plus a shared ground; the Uno's D9, D6 and D7 pins driving an L298N motor driver's ENA, IN1 and IN2 inputs; the L298N's OUT1 and OUT2 driving the DC gear motor; and a separate 12V supply powering the L298N with its ground tied back to the Uno.">
+      <defs>
+        <marker id="arrow-signal" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <polygon points="0,0 7,3 0,6" fill="var(--accent-signal)" />
+        </marker>
+        <marker id="arrow-power" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+          <polygon points="0,0 7,3 0,6" fill="var(--accent-power)" />
+        </marker>
+      </defs>
+
+      <!-- ===== boxes ===== -->
+      <!-- Camera -->
+      <rect x="20" y="90" width="190" height="120" rx="10" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+      <text x="115" y="140" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="600">USB CAMERA</text>
+      <text x="115" y="160" text-anchor="middle" fill="var(--muted)" font-size="11">UVC · MJPEG or YUY2</text>
+
+      <!-- P4 hub -->
+      <rect x="290" y="50" width="330" height="270" rx="12" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+      <text x="455" y="76" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="600">ESP32-P4 HUB</text>
+
+      <!-- C6 co-processor -->
+      <rect x="500" y="270" width="110" height="60" rx="8" fill="var(--sheet)" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="3 3"/>
+      <text x="555" y="296" text-anchor="middle" fill="var(--ink)" font-size="11.5" font-weight="600">ESP32-C6</text>
+      <text x="555" y="312" text-anchor="middle" fill="var(--muted)" font-size="9.5">co-processor</text>
+      <line x1="565" y1="270" x2="565" y2="245" stroke="var(--muted)" stroke-width="1.4" stroke-dasharray="3 3"/>
+      <text x="575" y="252" fill="var(--muted)" font-size="10">SDIO — on-board, fixed</text>
+
+      <!-- Arduino Uno -->
+      <rect x="770" y="60" width="180" height="220" rx="10" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+      <text x="860" y="85" text-anchor="middle" fill="var(--ink)" font-size="14" font-weight="600">ARDUINO UNO</text>
+
+      <!-- L298N driver -->
+      <rect x="1000" y="40" width="170" height="250" rx="10" fill="none" stroke="var(--accent-power)" stroke-width="1.6"/>
+      <text x="1085" y="64" text-anchor="middle" fill="var(--ink)" font-size="13" font-weight="600">L298N DRIVER</text>
+      <text x="1085" y="81" text-anchor="middle" fill="var(--muted)" font-size="9.5">ENA jumper removed</text>
+
+      <!-- Motor -->
+      <rect x="1260" y="90" width="190" height="150" rx="10" fill="none" stroke="var(--ink)" stroke-width="1.6"/>
+      <text x="1355" y="118" text-anchor="middle" fill="var(--ink)" font-size="13.5" font-weight="600">DC GEAR MOTOR</text>
+      <text x="1355" y="136" text-anchor="middle" fill="var(--muted)" font-size="10.5">12V · 16 RPM</text>
+      <text x="1355" y="151" text-anchor="middle" fill="var(--muted)" font-size="10.5">worm gear · self-locking</text>
+
+      <!-- 12V supply -->
+      <rect x="1260" y="350" width="190" height="90" rx="10" fill="none" stroke="var(--accent-power)" stroke-width="1.6"/>
+      <text x="1355" y="380" text-anchor="middle" fill="var(--ink)" font-size="12.5" font-weight="600">12V SUPPLY</text>
+      <text x="1355" y="398" text-anchor="middle" fill="var(--muted)" font-size="10.5">sized for stall current</text>
+
+      <!-- ===== camera to P4 (signal) ===== -->
+      <line x1="210" y1="140" x2="290" y2="140" stroke="var(--accent-signal)" stroke-width="2" marker-end="url(#arrow-signal)"/>
+      <text x="250" y="130" text-anchor="middle" fill="var(--accent-signal)" font-size="10.5">USB</text>
+
+      <!-- ===== P4 -> Uno, direct (signal) ===== -->
+      <line x1="620" y1="105" x2="770" y2="105" stroke="var(--accent-signal)" stroke-width="2" marker-end="url(#arrow-signal)"/>
+      <text x="695" y="95" text-anchor="middle" fill="var(--accent-signal)" font-size="10.5">TX 37* → D10 · direct</text>
+
+      <!-- ===== Uno -> P4, via divider (signal) ===== -->
+      <line x1="770" y1="150" x2="720" y2="150" stroke="var(--accent-signal)" stroke-width="2" marker-end="url(#arrow-signal)"/>
+      <polyline points="720,150 706,143 692,157 678,143 664,157 650,150" fill="none" stroke="var(--accent-warn)" stroke-width="2"/>
+      <line x1="650" y1="150" x2="620" y2="150" stroke="var(--accent-signal)" stroke-width="2" marker-end="url(#arrow-signal)"/>
+      <text x="695" y="132" text-anchor="middle" fill="var(--accent-warn)" font-size="10">10kΩ+15kΩ</text>
+      <text x="695" y="172" text-anchor="middle" fill="var(--accent-signal)" font-size="10.5">D11 → RX 38* · via divider</text>
+
+      <!-- ===== ground P4-Uno ===== -->
+      <line x1="620" y1="200" x2="770" y2="200" stroke="var(--accent-ground)" stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="695" y="219" text-anchor="middle" fill="var(--accent-ground)" font-size="10.5">GND ↔ GND · required</text>
+
+      <!-- ===== Uno -> L298N control lines ===== -->
+      <line x1="950" y1="90"  x2="1000" y2="90"  stroke="var(--accent-signal)" stroke-width="2" marker-end="url(#arrow-signal)"/>
+      <text x="975" y="80" text-anchor="middle" fill="var(--accent-signal)" font-size="9.5">D9→ENA</text>
+
+      <line x1="950" y1="150" x2="1000" y2="150" stroke="var(--accent-signal)" stroke-width="2" marker-end="url(#arrow-signal)"/>
+      <text x="975" y="140" text-anchor="middle" fill="var(--accent-signal)" font-size="9.5">D6→IN1</text>
+
+      <line x1="950" y1="210" x2="1000" y2="210" stroke="var(--accent-signal)" stroke-width="2" marker-end="url(#arrow-signal)"/>
+      <text x="975" y="200" text-anchor="middle" fill="var(--accent-signal)" font-size="9.5">D7→IN2</text>
+
+      <!-- ===== L298N -> motor (drive current) ===== -->
+      <line x1="1170" y1="130" x2="1260" y2="130" stroke="var(--accent-power)" stroke-width="2" marker-end="url(#arrow-power)"/>
+      <text x="1215" y="120" text-anchor="middle" fill="var(--accent-power)" font-size="9.5">OUT1→red</text>
+
+      <line x1="1170" y1="190" x2="1260" y2="190" stroke="var(--accent-power)" stroke-width="2" marker-end="url(#arrow-power)"/>
+      <text x="1215" y="180" text-anchor="middle" fill="var(--accent-power)" font-size="9.5">OUT2→black</text>
+
+      <!-- ===== 12V supply -> L298N power in ===== -->
+      <polyline points="1355,350 1355,310 1080,310 1080,290" fill="none" stroke="var(--accent-power)" stroke-width="2" marker-end="url(#arrow-power)"/>
+      <text x="1215" y="303" text-anchor="middle" fill="var(--accent-power)" font-size="10.5">+12V</text>
+
+      <!-- ===== ground: supply + L298N + Uno, all tied ===== -->
+      <polyline points="1260,410 860,410 860,280" fill="none" stroke="var(--accent-ground)" stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="1000" y="429" text-anchor="middle" fill="var(--accent-ground)" font-size="10.5">tie all grounds together</text>
+
+    </svg>
+    </div>
+    <figcaption>
+      Every physical connection needed to build the rig, color-coded by
+      what the wire carries: <strong style="color:var(--accent-signal)">signal/data</strong>,
+      <strong style="color:var(--accent-power)">power/drive current</strong>, and
+      <strong style="color:var(--accent-ground)">ground</strong>. The C6
+      co-processor is already wired to the P4 at the factory — shown only
+      so you know which pins on your board are already spoken for. Pin
+      numbers marked <b>*</b> are placeholders — see the footnote below
+      the table.
+    </figcaption>
+
+    <div class="legend">
+      <span><span class="swatch" style="background:var(--accent-signal)"></span>signal / data</span>
+      <span><span class="swatch" style="background:var(--accent-power)"></span>power / drive current</span>
+      <span><span class="swatch dash"></span>ground (shared, required)</span>
+      <span><span class="swatch" style="background:var(--accent-warn)"></span>critical component (divider)</span>
+    </div>
+
+    <h2>Connection-by-connection</h2>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr><th>Connection</th><th>From</th><th>To</th><th>Note</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">Camera video</td>
+            <td>Camera's USB cable</td>
+            <td>P4's USB host port</td>
+            <td class="note">Native USB-OTG/host jack. Check your board's docs for which physical port is host-capable — only one at a time.</td>
+          </tr>
+          <tr>
+            <td class="mono">Serial, P4→Uno</td>
+            <td class="mono">P4 GPIO <code>kUnoTxPin</code> (37*)</td>
+            <td class="mono">Uno D10 (SoftwareSerial RX)</td>
+            <td class="note">Direct wire. No divider needed this direction — 3.3V clears the Uno's ~3.0V logic-high threshold.</td>
+          </tr>
+          <tr>
+            <td class="mono">Serial, Uno→P4</td>
+            <td class="mono">Uno D11 (SoftwareSerial TX)</td>
+            <td class="mono">P4 GPIO <code>kUnoRxPin</code> (38*)</td>
+            <td class="note"><b>Must</b> pass through a divider: 10kΩ in series, then 15kΩ to GND, stepping 5V down to ~3.0V. Skipping this risks the P4 pin.</td>
+          </tr>
+          <tr>
+            <td class="mono">Common ground (link)</td>
+            <td>P4 GND</td>
+            <td>Uno GND</td>
+            <td class="note">Required. Connect before powering anything on.</td>
+          </tr>
+          <tr class="group-motor">
+            <td class="mono">Motor enable</td>
+            <td class="mono">Uno D9</td>
+            <td class="mono">L298N ENA</td>
+            <td class="note">Remove the board's ENA jumper first — with it in place the board ignores this pin and the motor free-runs whenever IN1/IN2 are set, breaking the timed positioning.</td>
+          </tr>
+          <tr class="group-motor">
+            <td class="mono">Motor direction 1</td>
+            <td class="mono">Uno D6</td>
+            <td class="mono">L298N IN1</td>
+            <td class="note">Together with IN2, sets spin direction.</td>
+          </tr>
+          <tr class="group-motor">
+            <td class="mono">Motor direction 2</td>
+            <td class="mono">Uno D7</td>
+            <td class="mono">L298N IN2</td>
+            <td class="note">If "forward" ends up spinning the wrong way once wired, swap OUT1/OUT2 at the motor rather than rewiring IN1/IN2.</td>
+          </tr>
+          <tr class="group-motor">
+            <td class="mono">Motor drive current</td>
+            <td class="mono">L298N OUT1 / OUT2</td>
+            <td>Motor's red / black wires</td>
+            <td class="note">Polarity here is arbitrary — the motor has no inherent "forward." Whichever way it spins, call that ANGLE_HOME → ANGLE_TARGET.</td>
+          </tr>
+          <tr class="group-motor">
+            <td class="mono">Driver power</td>
+            <td>12V supply (+ / −)</td>
+            <td>L298N +12V / GND terminals</td>
+            <td class="note">Size it for the motor's <b>stall current</b>, not just its running current. Not the Uno's 5V/USB rail.</td>
+          </tr>
+          <tr class="group-motor">
+            <td class="mono">Full ground tie</td>
+            <td>12V supply (−)</td>
+            <td>L298N GND + Uno GND (shared)</td>
+            <td class="note">Every ground in the system — 12V supply, L298N, Uno, P4 — is one shared net.</td>
+          </tr>
+          <tr>
+            <td class="mono">C6 co-processor</td>
+            <td>P4 SDIO pins (fixed)</td>
+            <td>On-board ESP32-C6</td>
+            <td class="note">Factory-wired — nothing for you to connect. Just don't reuse these pins for anything else.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footnote">
+      <b>About the * pins:</b> <code>kUnoTxPin</code> (37) and
+      <code>kUnoRxPin</code> (38) in <code>config.h</code> are placeholders,
+      not confirmed values for your specific P4 board — different P4 boards
+      route their GPIO differently, and the C6 occupies a fixed SDIO block
+      you must not collide with. Check your board's schematic before
+      wiring, update these two constants in <code>config.h</code> to
+      match, and only then wire D10/D11 accordingly. The motor-side pins
+      (D9/D6/D7) are ordinary Uno digital pins and free to pick — just
+      avoid D10/D11 (the P4 link) and stay clear of any pins your specific
+      shield or add-on already claims.
+    </div>
+
+    <h2>Six things worth reading before you pick up a wire</h2>
+    <div class="callouts">
+      <div class="callout">
+        <h3>Why only one serial direction needs a divider</h3>
+        <p>The Uno runs its logic at 5V; the P4 only tolerates 3.3V. A wire
+        straight from the Uno's TX pin can put 5V on a P4 input and damage
+        it. The other direction is safe as-is: the P4's 3.3V output
+        already reads as a clear logic-high on the Uno's 5V side.</p>
+      </div>
+      <div class="callout">
+        <h3>This motor has no built-in position control</h3>
+        <p>A hobby servo has electronics inside that turn a PWM pulse into
+        a shaft angle. This is a bare 2-wire DC gear motor — it only knows
+        "on," "off," and "which way." The sketch gets to 120° by running
+        it for a calculated time at its rated 16 RPM, not by telling it an
+        angle directly.</p>
+      </div>
+      <div class="callout">
+        <h3>Timed positioning drifts — recalibrate if it's off</h3>
+        <p>Real motor speed varies with load and supply voltage, so the
+        16 RPM label is a starting estimate, not a guarantee. If the arm
+        visibly over- or under-shoots, measure the actual travel with a
+        protractor and adjust <code>MOTOR_RPM</code> in the sketch rather
+        than the wiring.</p>
+      </div>
+      <div class="callout">
+        <h3>The ENA jumper has to come off</h3>
+        <p>Most L298N boards ship with a jumper that ties ENA permanently
+        high. Leave it in and the Uno's D9 pin is simply ignored — the
+        motor will run at full tilt the instant IN1/IN2 are set, and the
+        timed sweep won't work at all. Pull the jumper before wiring D9 in.</p>
+      </div>
+      <div class="callout">
+        <h3>Size the 12V supply for stall current, not running current</h3>
+        <p>A gear motor draws far more current the moment it's asked to
+        move (or if it stalls against something) than while spinning
+        freely. Undersizing the supply is the most common cause of a
+        driver board or Uno resetting the instant the motor is commanded.</p>
+      </div>
+      <div class="callout">
+        <h3>Only one USB controller is "host" at a time</h3>
+        <p>Unrelated to the motor, but still true: the P4 has two USB 2.0
+        OTG peripherals — one Hi-Speed, one Full-Speed — and only one can
+        act as host in the current software. An older webcam is almost
+        always Full-Speed; pick the matching controller under
+        <code>idf.py menuconfig</code>.</p>
+      </div>
+    </div>
+
+    <footer>
+      Cross-referenced against PROBE-NOTES.md, README.md, and SBS.md in the
+      GC project folder, and against the rewritten uno_servo.ino. This
+      diagram is a reconstruction from those notes and the firmware's own
+      config.h/uno_servo.ino, not an official manufacturer wiring sheet —
+      always verify pin assignments against your specific boards before
+      applying power. README.md and SBS.md still describe the original
+      hobby-servo build in places; ask for those to be updated if you want
+      them brought in line with this revision.
+    </footer>
+
+</div>
