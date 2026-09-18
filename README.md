@@ -1,4 +1,3 @@
-# GutterAppDevelopment
 # Servo rig
 
 Android app, ESP32-S3 hub, and Arduino Uno actuator. One button rotates a

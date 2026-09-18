@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+#  Run `idf.py set-target esp32p4` before building.
+# ---------------------------------------------------------------------------
+
+CONFIG_IDF_TARGET="esp32p4"
+
+# Frame buffers live in PSRAM. Without this the probe cannot allocate for
+# anything above about 320x240.
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_SPEED_200M=y
+
+# Isochronous transfers miss deadlines at lower clocks.
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_360=y
+
+CONFIG_FREERTOS_HZ=1000
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+# Let the probe print the camera's configuration descriptor on connection.
+# If this symbol does not exist in your driver version, find the equivalent
+# under: idf.py menuconfig -> Component config -> USB HOST UVC
+CONFIG_UVC_ENABLE_PRINT_DEVICE_DESC=y
+
+# The probe raises log levels itself for the verbose retry, so leave the
+# build able to emit debug messages.
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+CONFIG_LOG_MAXIMUM_LEVEL_DEBUG=y
+
+CONFIG_COMPILER_CXX_EXCEPTIONS=n
+
+# A slow console will drop log lines during the verbose retry.
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200
