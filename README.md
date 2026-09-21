@@ -21,14 +21,10 @@ Arducam IMX708 camera ──MIPI-CSI──> ESP32-P4 ──WiFi──> Android a
 
 Read these in order:
 
-1. **`BOM.xlsx`** -- the exact parts this was built for. If you're
-   assembling the hardware, buy from this list, not a substitute --
-   several parts (the camera, the motor driver) only work with this
-   firmware because of specific choices made for these exact parts.
-2. **`wiring-guide.html`** -- open it in any browser. Shows every
+1. **`wiring-guide.html`** -- open it in any browser. Shows every
    connection: camera, motor driver, motor, and the solar/battery power
    system.
-3. **`INSTALL.md`** -- the actual step-by-step: install the toolchains,
+2. **`INSTALL.md`** -- the actual step-by-step: install the toolchains,
    wire it up, build and flash the firmware, build and install the
    Android app, connect over WiFi, verify it all works.
 
@@ -38,7 +34,6 @@ Read these in order:
 README.md            you are here
 INSTALL.md            the full build/flash/install walkthrough
 wiring-guide.html      wiring diagram (open in a browser)
-BOM.xlsx               exact parts list
 CHANGES.md             engineering notes: what this build assumes and
                         what to double-check before your first build
 CMakeLists.txt         ESP-IDF project root
