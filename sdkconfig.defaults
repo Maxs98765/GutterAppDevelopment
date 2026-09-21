@@ -1,0 +1,52 @@
+# ---------------------------------------------------------------------------
+#  Run `idf.py set-target esp32p4` before building.
+#
+#  Changed from the USB-camera build's sdkconfig.defaults:
+#   - the UVC-specific option (CONFIG_UVC_ENABLE_PRINT_DEVICE_DESC) is
+#     gone; MIPI-CSI/ISP options take its place
+#   - CONFIG_PARTITION_TABLE_CUSTOM was MISSING before, which is a bug
+#     independent of the Arduino/camera rewrite: without it, ESP-IDF
+#     ignores partitions.csv entirely and uses its own default single-app
+#     table, silently dropping the slave_fw partition the C6 co-processor
+#     firmware depends on. Fixed below.
+# ---------------------------------------------------------------------------
+
+CONFIG_IDF_TARGET="esp32p4"
+
+# Use our own partitions.csv (adds the slave_fw partition for the C6's
+# ESP-Hosted firmware). Without these two lines ESP-IDF silently falls
+# back to a default partition table and partitions.csv is never read.
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# Frame buffers (camera capture buffers, JPEG output) live in PSRAM.
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_USE_MALLOC=y
+CONFIG_SPIRAM_SPEED_200M=y
+
+# MIPI-CSI camera pipeline. VERIFY these symbol names against your
+# installed esp_video version's Kconfig once `idf.py add-dependency` has
+# pulled it in -- run `idf.py menuconfig` and look under
+# "Component config -> ESP-Video Configuration" (or similar; menu names
+# have moved between esp_video releases) if any of these don't exist.
+# The same caution the old file gave for CONFIG_UVC_ENABLE_PRINT_DEVICE_DESC
+# applies here.
+CONFIG_ESP_VIDEO_ENABLE_MIPI_CSI_VIDEO_DEVICE=y
+CONFIG_ESP_VIDEO_ENABLE_ISP_VIDEO_DEVICE=y
+
+# The ISP block and the CSI receiver both need to be enabled at the
+# lower peripheral-driver level too.
+CONFIG_ESP_VIDEO_ENABLE_ISP_PIPELINE_CONTROLLER=y
+
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_360=y
+
+CONFIG_FREERTOS_HZ=1000
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
+
+CONFIG_LOG_DEFAULT_LEVEL_INFO=y
+CONFIG_LOG_MAXIMUM_LEVEL_DEBUG=y
+
+CONFIG_COMPILER_CXX_EXCEPTIONS=n
+
+# A slow console will drop log lines during boot diagnostics.
+CONFIG_ESP_CONSOLE_UART_BAUDRATE=115200

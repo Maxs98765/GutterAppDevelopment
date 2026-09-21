@@ -1,0 +1,56 @@
+## ---------------------------------------------------------------------------
+##  Rewritten for the exact parts in ListofMaterials.xlsx.
+##
+##  Camera: no longer a USB UVC webcam. The BOM camera is an Arducam
+##  "Raspberry Pi Camera Module 3" (Sony IMX708 sensor, 15/22-pin CSI
+##  ribbon), which plugs into the board's MIPI-CSI connector, not a USB
+##  port. espressif/usb_host_uvc is removed; espressif/esp_video +
+##  espressif/esp_cam_sensor (Espressif's V4L2-style camera framework) take
+##  its place, plus a third-party IMX708 sensor driver -- Espressif's own
+##  esp_cam_sensor does not carry IMX708 support as of the version pinned
+##  below (checked 2026-09-21 -- re-check before you build in case that has
+##  since changed, in which case you may be able to drop the third
+##  dependency and use Espressif's own driver instead).
+##
+##  Motor driver: no longer an L298N. The BOM driver is a Cytron MD13S,
+##  controlled over 2 logic pins (PWM + DIR) instead of the L298N's 3
+##  (ENA + IN1 + IN2), driven directly by this board's own GPIOs -- see
+##  motor.cpp. No Arduino Uno appears anywhere in the BOM, so the whole
+##  UART link to a Uno, and usb_host_uvc, are both gone.
+##
+##  esp_hosted is unchanged from the earlier version of this file: it is
+##  still what reaches the C6 WiFi co-processor over SDIO, and nothing
+##  above touches it.
+## ---------------------------------------------------------------------------
+dependencies:
+  idf:
+    # esp_video's MIPI-CSI + ISP pipeline on the P4 is documented against
+    # IDF >=5.4. The old usb_host_uvc / esp_hosted combination only needed
+    # >=5.3 -- raising the floor project-wide keeps everything on one
+    # target version instead of juggling two.
+    version: ">=5.4"
+
+  espressif/esp_hosted:
+    version: "*"
+
+  # V4L2-style camera framework: device nodes, buffer queues, the ISP
+  # pipeline, hardware JPEG output. mipi_cam.cpp talks to this, never to
+  # the sensor driver directly.
+  espressif/esp_video:
+    version: "^2.1.0"
+
+  # Sensor-driver framework esp_video sits on top of. Still needed even
+  # though the actual IMX708 driver comes from the component below --
+  # esp_video expects sensors to register through esp_cam_sensor's
+  # interfaces.
+  espressif/esp_cam_sensor:
+    version: "^2.3.0"
+
+  # IMX708 (Raspberry Pi Camera Module 3) sensor driver, written
+  # specifically for this sensor on the Waveshare ESP32-P4-WIFI6 board.
+  # Being third-party, it does not carry Espressif's support guarantee --
+  # check its repository is still maintained and read its license before
+  # you build, and pin an exact version once you've confirmed it compiles
+  # for you, rather than trusting a floated range like this long-term.
+  mushbraindave/esp_cam_sensor_imx:
+    version: "^0.3.0"
