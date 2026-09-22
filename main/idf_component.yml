@@ -33,6 +33,18 @@ dependencies:
   espressif/esp_hosted:
     version: "*"
 
+  # net.cpp calls mdns_init()/mdns_hostname_set()/mdns_service_add() so the
+  # rig is reachable at http://<kMdnsName>.local/ -- this was true of the
+  # original code too. On IDF 4.x, mdns.h came bundled with the SDK itself,
+  # so this dependency wasn't needed. Starting with IDF 5.x, Espressif split
+  # mDNS out into this separately-versioned component; without it declared
+  # here, the build fails partway through with "Missing mdns.h file name"
+  # even though nothing about the camera/motor rewrite touched net.cpp. This
+  # was missing from the original idf_component.yml too, the same way
+  # esp_hosted was (see the comment that used to be above this file).
+  espressif/mdns:
+    version: "^1.13"
+
   # V4L2-style camera framework: device nodes, buffer queues, the ISP
   # pipeline, hardware JPEG output. mipi_cam.cpp talks to this, never to
   # the sensor driver directly.

@@ -77,14 +77,21 @@ int       g_bufCount = 0;
 
 bool initVideoSubsystem()
 {
+    // Field names/types below are taken from this project's actual installed
+    // esp_video_init.h (managed_components/espressif__esp_video), not the
+    // earlier guess -- see the header comment above. The SCCB (camera I2C)
+    // config is a union of {port, scl_pin, sda_pin} OR a pre-made I2C
+    // handle; we use the first form. scl_pin/sda_pin/reset_pin/pwdn_pin are
+    // all gpio_num_t, not plain int, so config.h's int constants need an
+    // explicit cast (a -1 "not present" sentinel casts to GPIO_NUM_NC).
     esp_video_init_csi_config_t csiCfg = {};
     csiCfg.sccb_config.init_sccb          = true;
-    csiCfg.sccb_config.i2c_port           = cfg::kCamSccbI2cPort;
-    csiCfg.sccb_config.i2c_config.scl_pin = cfg::kCamSccbSclPin;
-    csiCfg.sccb_config.i2c_config.sda_pin = cfg::kCamSccbSdaPin;
-    csiCfg.sccb_config.freq_hz            = 100000;
-    csiCfg.reset_pin = cfg::kCamResetPin;
-    csiCfg.pwdn_pin  = cfg::kCamPwdnPin;
+    csiCfg.sccb_config.i2c_config.port    = cfg::kCamSccbI2cPort;
+    csiCfg.sccb_config.i2c_config.scl_pin = static_cast<gpio_num_t>(cfg::kCamSccbSclPin);
+    csiCfg.sccb_config.i2c_config.sda_pin = static_cast<gpio_num_t>(cfg::kCamSccbSdaPin);
+    csiCfg.sccb_config.freq                = 100000;   // SCCB/I2C bus speed, 100kHz
+    csiCfg.reset_pin = static_cast<gpio_num_t>(cfg::kCamResetPin);
+    csiCfg.pwdn_pin  = static_cast<gpio_num_t>(cfg::kCamPwdnPin);
 
     esp_video_init_config_t videoCfg = {};
     videoCfg.csi = &csiCfg;
@@ -232,10 +239,14 @@ bool start(FrameStore *store)
         ESP_LOGI(TAG, "capturing JPEG directly from the ISP pipeline");
     } else {
         if (!tryFormat(g_fd, V4L2_PIX_FMT_RGB565, cfg::kFrameWidth, cfg::kFrameHeight)) {
+            // kFrameWidth/kFrameHeight are uint16_t; varargs promote that to
+            // plain int, which -Werror=format= treats as a mismatch against
+            // a bare %u (same fix as net.cpp/jpeg_hw.cpp above).
             ESP_LOGE(TAG, "could not set RGB565 either -- VIDIOC_S_FMT "
                           "rejected both formats at %ux%u; try a smaller "
-                          "resolution in config.h", cfg::kFrameWidth,
-                     cfg::kFrameHeight);
+                          "resolution in config.h",
+                     static_cast<unsigned>(cfg::kFrameWidth),
+                     static_cast<unsigned>(cfg::kFrameHeight));
             close(g_fd);
             g_fd = -1;
             return false;
@@ -268,8 +279,9 @@ bool start(FrameStore *store)
 
     xTaskCreatePinnedToCore(captureTask, "cam_capture", 6144, nullptr, 13,
                             nullptr, tskNO_AFFINITY);
-    ESP_LOGI(TAG, "capturing %ux%u @ ~%.0f fps", cfg::kFrameWidth,
-             cfg::kFrameHeight, cfg::kFrameRate);
+    ESP_LOGI(TAG, "capturing %ux%u @ ~%.0f fps",
+             static_cast<unsigned>(cfg::kFrameWidth),
+             static_cast<unsigned>(cfg::kFrameHeight), cfg::kFrameRate);
     return true;
 }
 

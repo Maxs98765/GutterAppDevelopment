@@ -161,9 +161,9 @@ no L298N, no USB camera anywhere in this build.</p>
 
     <!-- signal wires: board -> driver (PWM, DIR, GND) -->
     <path d="M470,345 H560" stroke="#1f5fb3" stroke-width="2" fill="none"/>
-    <text x="515" y="338" text-anchor="middle" font-size="9" fill="#1f5fb3">PWM (GPIO40)</text>
+    <text x="515" y="338" text-anchor="middle" font-size="9" fill="#1f5fb3">PWM (GPIO4)</text>
     <path d="M470,360 H560" stroke="#1f5fb3" stroke-width="2" fill="none"/>
-    <text x="515" y="373" text-anchor="middle" font-size="9" fill="#1f5fb3">DIR (GPIO41)</text>
+    <text x="515" y="373" text-anchor="middle" font-size="9" fill="#1f5fb3">DIR (GPIO5)</text>
     <path d="M470,375 H560" stroke="#2a2f36" stroke-width="2" fill="none"/>
     <text x="515" y="401" text-anchor="middle" font-size="9" fill="#2a2f36">GND (shared)</text>
 
@@ -198,10 +198,13 @@ no L298N, no USB camera anywhere in this build.</p>
 </div>
 
 <div class="callout">
-  <strong>Before you wire GPIO40 / GPIO41 / GPIO7 / GPIO8:</strong>
-  These four pin numbers (motor PWM, motor DIR, camera SCCB SDA/SCL) are this project's
-  best inference for a P4 dev-kit-style board, not numbers read off your specific board's
-  schematic. Check your board's own documentation or silkscreen before wiring, and update
+  <strong>Pin numbers below are confirmed against Waveshare's own pinout diagram</strong>
+  for the ESP32-P4-WIFI6-DEV-KIT (its "Pinout Definition" header table), not guessed. An
+  earlier draft of this project had the motor on GPIO40/GPIO41, which that diagram shows
+  are <em>not</em> on the 40-pin header at all -- they're used internally for the onboard
+  microSD card slot. Fixed to GPIO4/GPIO5, which the same diagram confirms are plain,
+  unused header pins. If you're building this on a <em>different</em> P4 board, re-check
+  its own pinout diagram before trusting these four numbers, and update
   <code>main/config.h</code> to match if they differ -- the firmware reads every pin number
   from that one file.
 </div>
@@ -216,12 +219,12 @@ no L298N, no USB camera anywhere in this build.</p>
   <tr><td>Bus bar</td><td>Buck converter (fused)</td><td>18 AWG</td><td>Size the fuse to the buck converter's rated input current, not the motor's.</td></tr>
   <tr><td>Buck converter</td><td>ESP32-P4-WIFI6 board</td><td>18 AWG / USB-C</td><td>5V output into the board's power input.</td></tr>
   <tr><td>Bus bar</td><td>Cytron MD13S (fused)</td><td>14 AWG</td><td>Size this fuse to the motor's actual stall current, not just its running current -- a worm-gear motor stalled against its mechanical limit draws far more than while turning freely.</td></tr>
-  <tr><td>Cytron MD13S "PWM"</td><td>ESP32-P4 GPIO40</td><td>18 AWG (signal)</td><td><code>config.h</code>: <code>kMotorPwmPin</code>.</td></tr>
-  <tr><td>Cytron MD13S "DIR"</td><td>ESP32-P4 GPIO41</td><td>18 AWG (signal)</td><td><code>config.h</code>: <code>kMotorDirPin</code>.</td></tr>
+  <tr><td>Cytron MD13S "PWM"</td><td>ESP32-P4 GPIO4</td><td>18 AWG (signal)</td><td><code>config.h</code>: <code>kMotorPwmPin</code>. Confirmed free on the 40-pin header -- see the callout above.</td></tr>
+  <tr><td>Cytron MD13S "DIR"</td><td>ESP32-P4 GPIO5</td><td>18 AWG (signal)</td><td><code>config.h</code>: <code>kMotorDirPin</code>. Confirmed free on the 40-pin header -- see the callout above.</td></tr>
   <tr><td>Cytron MD13S logic GND</td><td>ESP32-P4 GND</td><td>18 AWG</td><td>Required -- without a shared ground the PWM/DIR signals have no reference and the driver will misbehave or not respond.</td></tr>
   <tr><td>Cytron MD13S "M1+"/"M1-"</td><td>Motor red/black leads</td><td>14 AWG</td><td>Polarity is arbitrary -- swap both if the arm runs backwards on first test.</td></tr>
   <tr><td>Camera ribbon</td><td>ESP32-P4-WIFI6 CSI connector</td><td>ribbon (supplied)</td><td>Check ribbon orientation against the connector's own latch markings.</td></tr>
-  <tr><td>Camera SCCB SDA/SCL</td><td>ESP32-P4 GPIO7 / GPIO8</td><td>-</td><td>On many boards this is already wired internally between the CSI connector and the main chip -- confirm before assuming you need to add these wires.</td></tr>
+  <tr><td>Camera SCCB SDA/SCL</td><td>ESP32-P4 GPIO7 / GPIO8</td><td>-</td><td>Confirmed as this board's default I2C pins (labeled SDA/SCL on the header itself). On many boards this is already wired internally between the CSI connector and the main chip -- confirm before assuming you need to add these wires.</td></tr>
 </table>
 
 <h2>Enclosure and finishing parts</h2>

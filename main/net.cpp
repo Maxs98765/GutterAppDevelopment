@@ -1,5 +1,6 @@
 #include "net.h"
 
+#include <cinttypes>
 #include <cstring>
 
 #include "config.h"
@@ -91,7 +92,12 @@ bool startCoprocessor()
     esp_hosted_coprocessor_fwver_t ver = {};
     if (esp_hosted_get_coprocessor_fwversion(&ver) == ESP_OK) {
         char buf[24];
-        snprintf(buf, sizeof(buf), "%d.%d.%d", ver.major1, ver.minor1, ver.patch1);
+        // ver.major1/minor1/patch1 are uint32_t. Plain %d expects a signed
+        // int and this toolchain treats that mismatch as a hard error
+        // (-Werror=format=); PRIu32 (from <cinttypes>) is the portable way
+        // to format a uint32_t regardless of how the target typedefs it.
+        snprintf(buf, sizeof(buf), "%" PRIu32 ".%" PRIu32 ".%" PRIu32,
+                 ver.major1, ver.minor1, ver.patch1);
         g_slaveVer = buf;
         ESP_LOGI(TAG, "co-processor firmware %s", buf);
 

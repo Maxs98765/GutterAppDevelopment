@@ -48,11 +48,10 @@ inline constexpr bool kCameraEnabled = true;
 // IMX708's registers (exposure, gain, mode select, etc.), separate from
 // the MIPI-CSI lanes that actually carry pixels.
 //
-// VERIFY these three against the Waveshare ESP32-P4-WIFI6's own
-// schematic/pinout before building: they are this project's best
-// inference (a typical SCCB pin choice on P4 dev kits), not read off your
-// specific board's silkscreen or schematic. Same caution that applied to
-// the old kUnoTxPin/kUnoRxPin guess.
+// CONFIRMED against the board's own pinout diagram (Waveshare's
+// "Pinout Definition" header table for the ESP32-P4-WIFI6-DEV-KIT):
+// GPIO7 is labeled "SDA", GPIO8 is labeled "SCL" -- this is the board's
+// documented default I2C pair, not a guess.
 inline constexpr int kCamSccbI2cPort = 0;
 inline constexpr int kCamSccbSclPin  = 8;
 inline constexpr int kCamSccbSdaPin  = 7;
@@ -100,11 +99,24 @@ inline constexpr int kCamBufferCount = 3;
 
 // ---- Motor (Cytron MD13S + BRINGSMART 12V/16RPM self-locking worm gear) ---
 // Direct GPIO control -- no Arduino, no serial link, no divider circuit.
-// Avoid the USB and SDIO pins; on most P4 boards the C6 co-processor
-// occupies a fixed SDIO block. VERIFY against your board's pinout before
-// wiring -- same caution as the camera pins above.
-inline constexpr int kMotorPwmPin = 40;   // -> Cytron MD13S "PWM"
-inline constexpr int kMotorDirPin = 41;   // -> Cytron MD13S "DIR"
+//
+// GPIO40/41 were this project's ORIGINAL GUESS and turned out to be wrong
+// -- confirmed wrong, not just unverified. Waveshare's own pinout table
+// for this exact board (the "Pinout Definition" header diagram for the
+// ESP32-P4-WIFI6-DEV-KIT) shows GPIO40/41 are not even broken out to the
+// 40-pin header at all: they're used internally for the onboard microSD
+// card slot's 4-wire SDMMC bus (d1/d2, alongside d0=39, d3=42, clk=43,
+// cmd=44). Wiring the motor to them would have shared the Cytron's PWM/DIR
+// signals with the SD card interface.
+//
+// GPIO4 and GPIO5 below ARE confirmed, from that same pinout diagram, to
+// be plain header pins -- not I2C (7/8, used by the camera above), not
+// UART (37/38, silkscreened TXD/RXD -- the console/flashing port), and not
+// part of the SD card bus above. If you ever move this to a different
+// P4 board, re-check its own pinout diagram the same way before reusing
+// these numbers -- don't assume they carry over.
+inline constexpr int kMotorPwmPin = 4;   // -> Cytron MD13S "PWM"
+inline constexpr int kMotorDirPin = 5;   // -> Cytron MD13S "DIR"
 
 // MD13S accepts a standard PWM speed input; this is comfortably inside its
 // documented range and well clear of the LEDC peripheral's limits.

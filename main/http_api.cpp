@@ -185,10 +185,12 @@ esp_err_t handleRotate(httpd_req_t *req)
 {
     uint32_t hold = 0;
     bool haveHold = queryUint(req, "hold", &hold);
-    if (!haveHold && cfg::kHoldOverrideMs > 0) {
-        hold = cfg::kHoldOverrideMs;
-        haveHold = true;
-    }
+    // The original (Uno-serial) version of this handler had a second
+    // fallback here, cfg::kHoldOverrideMs, for forcing a hold value on
+    // requests that didn't specify ?hold=. That constant didn't survive
+    // into this rewrite's config.h -- motor::rotate() already falls back to
+    // cfg::kHoldMs whenever it's passed 0, which is exactly what a missing
+    // ?hold= produces below, so no separate override constant is needed.
 
     std::string reply = motor::rotate(haveHold ? hold : 0);
     bool ok = reply.rfind("OK", 0) == 0;
@@ -318,7 +320,10 @@ bool start(FrameStore *store)
 
     for (const auto &r : routes) httpd_register_uri_handler(g_server, &r);
 
-    ESP_LOGI(TAG, "http server listening on port %u", cfg::kHttpPort);
+    // kHttpPort is uint16_t; see the cast note on the same class of issue
+    // in net.cpp/jpeg_hw.cpp/mipi_cam.cpp.
+    ESP_LOGI(TAG, "http server listening on port %u",
+             static_cast<unsigned>(cfg::kHttpPort));
     return true;
 }
 

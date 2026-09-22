@@ -9,6 +9,18 @@
 #     ignores partitions.csv entirely and uses its own default single-app
 #     table, silently dropping the slave_fw partition the C6 co-processor
 #     firmware depends on. Fixed below.
+#   - CONFIG_ESPTOOLPY_FLASHSIZE was also MISSING, another pre-existing
+#     bug independent of this rewrite. Without it, ESP-IDF assumes the
+#     smallest possible flash chip (2MB) when sizing the partition table,
+#     but partitions.csv's own table (factory app + slave_fw) adds up to
+#     about 4.1MB -- comfortably real flash, just bigger than the
+#     unstated 2MB default, so the build failed with "Partitions tables
+#     occupies 4.1MB ... does not fit in configured flash size 2MB." Set
+#     explicitly below to 16MB, which is what Waveshare's own published
+#     specs list for the ESP32-P4-WIFI6 Dev Kit; if you're building for a
+#     different board, check its actual flash size and change this to
+#     match -- setting it larger than the real chip fails at flash time,
+#     not at build time, so it's worth getting right.
 # ---------------------------------------------------------------------------
 
 CONFIG_IDF_TARGET="esp32p4"
@@ -18,6 +30,11 @@ CONFIG_IDF_TARGET="esp32p4"
 # back to a default partition table and partitions.csv is never read.
 CONFIG_PARTITION_TABLE_CUSTOM=y
 CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+
+# Must match (or be no larger than) the board's actual flash chip size --
+# see the note above.
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="16MB"
 
 # Frame buffers (camera capture buffers, JPEG output) live in PSRAM.
 CONFIG_SPIRAM=y

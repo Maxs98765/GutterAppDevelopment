@@ -50,8 +50,12 @@ bool init(uint16_t width, uint16_t height, int quality, size_t maxOutBytes)
         return false;
     }
 
+    // width/height are uint16_t; varargs default-promote that to plain int,
+    // which mismatches a bare %u under -Werror=format= the same way the
+    // uint32_t case in net.cpp did. Cast explicitly, same as g_outCap below.
     ESP_LOGI(TAG, "hardware encoder ready: %ux%u, quality %d, %u byte output",
-             width, height, quality, static_cast<unsigned>(g_outCap));
+             static_cast<unsigned>(width), static_cast<unsigned>(height),
+             quality, static_cast<unsigned>(g_outCap));
     return true;
 }
 
